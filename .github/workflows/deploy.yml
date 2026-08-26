@@ -1,0 +1,70 @@
+name: Deploy Apps
+
+on:
+  push:
+      - main
+
+jobs:
+  detect-changes:
+    runs-on: self-hosted
+    outputs:
+      node_changed: ${{ steps.filter.outputs.node }}
+      java_changed: ${{ steps.filter.outputs.java }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Detect changes
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            node:
+              - 'node/**'
+            java:
+              - 'java/**'
+
+  deploy-node:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.node_changed == 'true'
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Build and run Node app
+        run: |
+          cd node
+          docker build -t node-app .
+          docker stop node-app || true
+          docker rm node-app || true
+          docker run -d --name node-app -p 3000:3000 node-app
+
+      - name: Verify Node deployment
+        run: |
+          sleep 10
+          curl http://localhost:3000
+
+  deploy-java:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.java_changed == 'true'
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Build and run Spring Boot app
+        run: |
+          cd java
+          docker build -t spring-app .
+          docker stop spring-app || true
+          docker rm spring-app || true
+          docker run -d --name spring-app -p 8080:8080 spring-app
+
+      - name: Verify Java deployment
+        run: |
+          sleep 10
+          curl http://localhost:8080
