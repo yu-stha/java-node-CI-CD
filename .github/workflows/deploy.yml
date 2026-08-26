@@ -2,7 +2,7 @@ name: Deploy Apps
 
 on:
   push:
-      - main
+      - master
 
 jobs:
   detect-changes:
