@@ -2,6 +2,7 @@ name: Deploy Apps
 
 on:
   push:
+    branches:
       - master
 
 jobs:
