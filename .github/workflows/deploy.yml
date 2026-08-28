@@ -3,7 +3,7 @@ name: Deploy Apps
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   detect-changes:
