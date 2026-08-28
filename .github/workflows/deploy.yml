@@ -25,6 +25,8 @@ jobs:
               - 'node/**'
             java:
               - 'java/**'
+ 
+ 
 
   deploy-node:
     needs: detect-changes
@@ -41,7 +43,7 @@ jobs:
           docker build -t node-app .
           docker stop node-app || true
           docker rm node-app || true
-          docker run -d --name node-app -p 3000:3000 node-app
+          docker run -d --name node-app --network hw node-app
 
       - name: Verify Node deployment
         run: |
@@ -60,10 +62,10 @@ jobs:
       - name: Build and run Spring Boot app
         run: |
           cd java
-          docker build -t spring-app .
-          docker stop spring-app || true
-          docker rm spring-app || true
-          docker run -d --name spring-app -p 8080:8080 spring-app
+          docker build -t java-app-image .
+          docker stop java-app-image || true
+          docker rm java-app-image || true
+          docker run -d --name java-app-image --network hw java-app
 
       - name: Verify Java deployment
         run: |
