@@ -29,8 +29,6 @@ jobs:
  
 
   deploy-node:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.node_changed == 'true'
     runs-on: self-hosted
 
     steps:
@@ -40,9 +38,10 @@ jobs:
       - name: Build and run Node app
         run: |
           cd node
-          docker build -t node-app .
-          docker stop node-app || true
-          docker rm node-app || true
+          docker build -t node-image .
+          docker stop node-image
+	  docker ps
+          docker rm node-image || true
           docker run -d --name node-app --network hw node-app
 
       - name: Verify Node deployment
@@ -51,8 +50,6 @@ jobs:
           curl http://localhost:3000
 
   deploy-java:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.java_changed == 'true'
     runs-on: self-hosted
 
     steps:
@@ -62,10 +59,10 @@ jobs:
       - name: Build and run Spring Boot app
         run: |
           cd java
-          docker build -t java-app-image .
-          docker stop java-app-image || true
-          docker rm java-app-image || true
-          docker run -d --name java-app-image --network hw java-app
+          docker build -t java-image .
+          docker stop java-image || true
+          docker rm java-image || true
+          docker run -d --name java-app --network hw java-image
 
       - name: Verify Java deployment
         run: |
