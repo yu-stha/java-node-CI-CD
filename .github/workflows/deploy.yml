@@ -10,17 +10,26 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-      - name: Run Semgrep SAST scan
-        run: |
-          pip install semgrep --break-system-packages
-          semgrep --config auto --error .
+        with:
+          fetch-depth: 0
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: SonarQube Quality Gate check
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy-node:
     needs: sast-scan
     runs-on: self-hosted
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
       - name: Build and run Node app
         run: |
           cd node
@@ -28,17 +37,13 @@ jobs:
           docker stop node-app || true
           docker rm node-app || true
           docker run -d --name node-app --network hw node-image
-      - name: Verify Node deployment
-        run: |
-          sleep 10
-          curl http://localhost:3000
+      - run: sleep 10 && curl http://localhost:3000
 
   deploy-java:
     needs: sast-scan
     runs-on: self-hosted
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
       - name: Build and run Spring Boot app
         run: |
           cd java
@@ -46,17 +51,13 @@ jobs:
           docker stop java-app || true
           docker rm java-app || true
           docker run -d --name java-app --network hw java-image
-      - name: Verify Java deployment
-        run: |
-          sleep 10
-          curl http://localhost:8080
+      - run: sleep 10 && curl http://localhost:8080
 
   deploy-reverse-proxy:
     needs: [deploy-node, deploy-java]
     runs-on: self-hosted
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
       - name: Build and deploy reverse proxy
         run: |
           cd reverse-proxy
