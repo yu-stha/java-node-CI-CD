@@ -48,6 +48,9 @@ jobs:
           curl http://localhost:8080
   
   deploy-reverse-proxy:
+    needs: deploy-node 
+    needs: deploy-java
+
     runs-on: self-hosted
   
     steps:
