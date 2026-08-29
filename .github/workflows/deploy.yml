@@ -18,7 +18,7 @@ jobs:
           cd node
           docker build -t node-image .
           docker stop node-image
-	  docker ps
+          docker ps
           docker rm node-image || true
           docker run -d --name node-app --network hw node-app
 
