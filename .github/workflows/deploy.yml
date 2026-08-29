@@ -1,4 +1,5 @@
 name: Deploy Apps
+
 on:
   push:
     branches:
@@ -29,7 +30,9 @@ jobs:
     needs: sast-scan
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
       - name: Build and run Node app
         run: |
           cd node
@@ -37,13 +40,20 @@ jobs:
           docker stop node-app || true
           docker rm node-app || true
           docker run -d --name node-app --network hw node-image
-      - run: sleep 10 && curl http://localhost:3000
+
+      - name: Verify Node deployment
+        run: |
+          sleep 10
+          docker ps --filter "name=node-app" --filter "status=running" | grep node-app
+          docker logs node-app
 
   deploy-java:
     needs: sast-scan
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
       - name: Build and run Spring Boot app
         run: |
           cd java
@@ -51,13 +61,20 @@ jobs:
           docker stop java-app || true
           docker rm java-app || true
           docker run -d --name java-app --network hw java-image
-      - run: sleep 10 && curl http://localhost:8080
+
+      - name: Verify Java deployment
+        run: |
+          sleep 10
+          docker ps --filter "name=java-app" --filter "status=running" | grep java-app
+          docker logs java-app
 
   deploy-reverse-proxy:
     needs: [deploy-node, deploy-java]
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
       - name: Build and deploy reverse proxy
         run: |
           cd reverse-proxy
@@ -65,7 +82,9 @@ jobs:
           docker stop lab || true
           docker rm lab || true
           docker run -d --name lab --network hw -p 8080:80 proxy-image
+
       - name: Verify communication
         run: |
+          sleep 5
           docker exec java-app ping -c 4 node-app
           docker exec java-app ping -c 4 lab
