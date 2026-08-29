@@ -46,3 +46,23 @@ jobs:
         run: |
           sleep 10
           curl http://localhost:8080
+  
+  deploy-reverse-proxy:
+    runs-on: self-hosted
+  
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name : Build and deploy reverse proxy
+        run: |
+          cd reverse-proxy
+          docker build -t proxy-image .
+          docker run -d --name lab --network hw proxy-image
+
+      - name: verify communication
+        run: |
+          docker exec -it java-app ping -n 4 node-app
+          docker exec -it java-app ping -n 4 lab
+
+
