@@ -6,28 +6,6 @@ on:
       - main
 
 jobs:
-  detect-changes:
-    runs-on: self-hosted
-    outputs:
-      node_changed: ${{ steps.filter.outputs.node }}
-      java_changed: ${{ steps.filter.outputs.java }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Detect changes
-        id: filter
-        uses: dorny/paths-filter@v4
-        with:
-          filters: |
-            node:
-              - 'node/**'
-            java:
-              - 'java/**'
- 
- 
-
   deploy-node:
     runs-on: self-hosted
 
